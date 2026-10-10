@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ChatHeader from "./components/ChatHeader";
 import BattleSidebar from "./components/BattleSidebar";
 
 export default function ChatInterface() {
@@ -6,6 +7,8 @@ export default function ChatInterface() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [judgeProvider, setJudgeProvider] = useState("gemini");
+  const [activeBattleId, setActiveBattleId] = useState(null);
 
   const handleNewBattle = () => {
     setMessages([]);
@@ -22,18 +25,22 @@ export default function ChatInterface() {
       />
 
       <main className="flex flex-1 min-w-0 flex-col">
-        <header className="border-b border-zinc-200 dark:border-zinc-800 p-4 flex items-center justify-between">
-          <button
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="text-sm"
-          >
-            {isSidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
-          </button>
+        <ChatHeader 
+          user={user}
+          messages={messages}
+          activeBattleId={activeBattleId}
+          isSidebarOpen={isSidebarOpen}
+          judgeProvider={judgeProvider}
+          onOpenSidebar={() => setIsSidebarOpen(true)}
+          onOpenAuth={() => setIsAuthModalOpen(true)}
+          onSignOut={() => {
+            setUser(null);
+            setMessages([]);
+            setActiveBattleId(null);
+          }}
+          onJudgeProviderChange={setJudgeProvider}
+        />
 
-          <h1 className="text-lg font-semibold">
-            AI Battle Arena
-          </h1>
-        </header>
 
         <section className="flex flex-1 items-center justify-center p-6">
           {messages.length === 0
