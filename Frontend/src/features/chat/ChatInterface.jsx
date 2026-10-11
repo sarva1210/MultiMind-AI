@@ -1,8 +1,8 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import BattleSidebar from "./components/BattleSidebar";
 import ChatHeader from "./components/ChatHeader";
 import ChatComposer from "./components/ChatComposer";
-
+import MessageList from "./components/MessageList";
 
 export default function ChatInterface() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -14,6 +14,8 @@ export default function ChatInterface() {
   const [inputValue, setInputValue] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const textareaRef = useRef(null);
+  const endOfMessagesRef = useRef(null);
+  const [isLoadingBattle, setIsLoadingBattle] = useState(false);
 
   const handleNewBattle = () => {
     setMessages([]);
@@ -57,6 +59,12 @@ export default function ChatInterface() {
     }, 300);
   };
 
+  useEffect(() => { 
+    endOfMessagesRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [messages.length]);
+
   return (
     <div className="flex min-h-screen w-full overflow-x-hidden bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
       <BattleSidebar
@@ -84,12 +92,12 @@ export default function ChatInterface() {
           onJudgeProviderChange={setJudgeProvider}
         />
 
-
-        <section className="flex flex-1 items-center justify-center p-6">
-          {messages.length === 0
-            ? "Welcome to the Arena"
-            : `${messages.length} messages`}
-        </section>
+        <MessageList 
+          messages={messages}
+          isLoadingBattle={isLoadingBattle}
+          isStreaming={isStreaming}
+          endOfMessagesRef={endOfMessagesRef}
+        />
 
         <ChatComposer  
           inputValue={inputValue}
