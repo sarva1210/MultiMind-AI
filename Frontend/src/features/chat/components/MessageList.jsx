@@ -2,12 +2,7 @@ import { Swords } from "lucide-react";
 import ArenaResponse from "../../../components/ArenaResponse";
 import UserMessage from "../../../components/UserMessage";
 
-export default function MessageList({
-  messages,
-  isLoadingBattle,
-  isStreaming,
-  endOfMessagesRef,
-}) {
+export default function MessageList({ messages, isLoadingBattle, isStreaming, endOfMessagesRef }) {
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-8 md:px-8">
       {isLoadingBattle ? (
