@@ -1,6 +1,8 @@
-import { useState } from "react";
-import ChatHeader from "./components/ChatHeader";
+import { useRef, useState } from "react";
 import BattleSidebar from "./components/BattleSidebar";
+import ChatHeader from "./components/ChatHeader";
+import ChatComposer from "./components/ChatComposer";
+
 
 export default function ChatInterface() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -9,9 +11,50 @@ export default function ChatInterface() {
   const [messages, setMessages] = useState([]);
   const [judgeProvider, setJudgeProvider] = useState("gemini");
   const [activeBattleId, setActiveBattleId] = useState(null);
+  const [inputValue, setInputValue] = useState("");
+  const [isStreaming, setIsStreaming] = useState(false);
+  const textareaRef = useRef(null);
 
   const handleNewBattle = () => {
     setMessages([]);
+  };
+  
+  const handleSend = (e) => {
+    e?.preventDefault();
+    if (!inputValue.trim() || isStreaming) return;
+
+    const problemText = inputValue.trim();
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        problem: problemText,
+        solution_1: "",
+        solution_2: "",
+        judge: null,
+        isNew: true,
+      },
+    ]);
+
+    setInputValue("");
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key !== "Enter" || e.shiftKey) return;
+
+    e.preventDefault();
+    handleSend();
+  };
+
+  const handleTextareaFocus = () => {
+    if (window.innerWidth >= 768) return;
+
+    setTimeout(() => {
+      textareaRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    }, 300);
   };
 
   return (
@@ -48,9 +91,17 @@ export default function ChatInterface() {
             : `${messages.length} messages`}
         </section>
 
-        <footer className="border-t border-zinc-200 dark:border-zinc-800 p-4">
-          Chat input will go here
-        </footer>
+        <ChatComposer  
+          inputValue={inputValue}
+          messages={messages}
+          isStreaming={isStreaming}
+          textareaRef={textareaRef}
+          onInputChange={setInputValue}
+          onKeyDown={handleKeyDown}
+          onFocus={handleTextareaFocus}
+          onSubmit={handleSend}
+        />
+
       </main>
 
       {isAuthModalOpen && (
