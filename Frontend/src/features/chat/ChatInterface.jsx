@@ -3,6 +3,7 @@ import BattleSidebar from "./components/BattleSidebar";
 import ChatHeader from "./components/ChatHeader";
 import ChatComposer from "./components/ChatComposer";
 import MessageList from "./components/MessageList";
+import AuthModal from "../../components/AuthModal";
 
 export default function ChatInterface() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -112,19 +113,10 @@ export default function ChatInterface() {
 
       </main>
 
-      {isAuthModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-xl p-6">
-            <p className="mb-4">Authentication modal placeholder</p>
-            <button
-              onClick={() => setIsAuthModalOpen(false)}
-              className="text-sm underline"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+      <AuthModal 
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
     </div>
   );
 }
