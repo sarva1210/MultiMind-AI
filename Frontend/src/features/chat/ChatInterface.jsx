@@ -28,7 +28,34 @@ export default function ChatInterface() {
     textareaRef.current?.focus();
   };
   
-  
+  const handleSend = (e) => { 
+    e?.preventDefault();
+    const problemText = inputValue.trim();
+
+    if (!problemText || isStreaming) return;
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        problem: problemText,
+        solution_1:
+          "This is a frontend demo response. The first AI model will provide its solution when the backend is connected.",
+        solution_2:
+          "This is the second demo response. The second AI model will provide its solution when the backend is connected.",
+        judge: {
+          solution_1_score: 8,
+          solution_2_score: 9,
+          winner: "Solution 2",
+          reasoning:
+            "Demo evaluation only. Real scores and recommendations will come from the judge model after backend integration.",
+        },
+        isNew: true,
+      },
+    ]);
+
+    setInputValue("");
+  };
 
   const handleKeyDown = (e) => {
     if (e.key !== "Enter" || e.shiftKey) return;
