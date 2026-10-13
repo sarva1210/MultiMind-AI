@@ -20,27 +20,15 @@ export default function ChatInterface() {
 
   const handleNewBattle = () => {
     setMessages([]);
+    setActiveBattleId(null);
+    setInputValue("");
+    setIsStreaming(false);
+    setIsLoadingBattle(false);
+    setIsSidebarOpen(false);
+    textareaRef.current?.focus();
   };
   
-  const handleSend = (e) => {
-    e?.preventDefault();
-    if (!inputValue.trim() || isStreaming) return;
-
-    const problemText = inputValue.trim();
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        problem: problemText,
-        solution_1: "",
-        solution_2: "",
-        judge: null,
-        isNew: true,
-      },
-    ]);
-
-    setInputValue("");
-  };
+  
 
   const handleKeyDown = (e) => {
     if (e.key !== "Enter" || e.shiftKey) return;
@@ -60,11 +48,12 @@ export default function ChatInterface() {
     }, 300);
   };
 
-  useEffect(() => { 
+  useEffect(() => {
     endOfMessagesRef.current?.scrollIntoView({
       behavior: "smooth",
+      block: "end",
     });
-  }, [messages.length]);
+  }, [messages]);
 
   return (
     <div className="flex min-h-screen w-full overflow-x-hidden bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
