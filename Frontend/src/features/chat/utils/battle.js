@@ -14,3 +14,12 @@ export const createBattle = (problem = "New Battle") => ({
   createdAt: new Date().toISOString(),
   messages: [],
 });
+
+export const toMessage = (turn) => ({
+  id: turn.id || turn._id || generateBattleId(),
+  problem: turn.problem || "",
+  solution_1: turn.solution_1 || "",
+  solution_2: turn.solution_2 || "",
+  judge: turn.judge || null,
+  isNew: false,
+});
