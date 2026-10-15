@@ -7,3 +7,10 @@ export const formatDate = (date) => {
     day: "numeric",
   });
 };
+
+export const createBattle = (problem = "New Battle") => ({
+  id: generateBattleId(),
+  title: problem.length > 32 ? `${problem.slice(0, 32)}...` : problem,
+  createdAt: new Date().toISOString(),
+  messages: [],
+});
