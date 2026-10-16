@@ -14,48 +14,78 @@ export default function ChatInterface() {
   const [activeBattleId, setActiveBattleId] = useState(null);
   const [inputValue, setInputValue] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isLoadingBattle, setIsLoadingBattle] = useState(false);
+  const [battleList, setBattleList] = useState([]);
+
   const textareaRef = useRef(null);
   const endOfMessagesRef = useRef(null);
-  const [isLoadingBattle, setIsLoadingBattle] = useState(false);
 
   const handleNewBattle = () => {
+    const newBattle = {
+      id: crypto.randomUUID(),
+      title: "New Battle",
+      createdAt: new Date().toISOString(),
+      messages: [],
+    };
+
+    setBattleList((prev) => [newBattle, ...prev]);
+    setActiveBattleId(newBattle.id);
     setMessages([]);
-    setActiveBattleId(null);
     setInputValue("");
     setIsStreaming(false);
     setIsLoadingBattle(false);
     setIsSidebarOpen(false);
-    textareaRef.current?.focus();
   };
-  
-  const handleSend = (e) => { 
+
+  const handleSelectBattle = (battleId) => {
+    const selectedBattle = battleList.find(
+      (battle) => battle.id === battleId
+    );
+
+    if (!selectedBattle) return;
+
+    setActiveBattleId(battleId);
+    setMessages(selectedBattle.messages);
+    setInputValue("");
+    setIsSidebarOpen(false);
+  };
+
+  const handleDeleteBattle = (battleId) => {
+    setBattleList((prev) =>
+      prev.filter((battle) => battle.id !== battleId)
+    );
+
+    if (activeBattleId === battleId) {
+      setActiveBattleId(null);
+      setMessages([]);
+      setInputValue("");
+    }
+  };
+
+  const handleSend = (e) => {
     e?.preventDefault();
+
     const problemText = inputValue.trim();
 
     if (!problemText || isStreaming) return;
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        problem: problemText,
-        solution_1:
-          "This is a frontend demo response. The first AI model will provide its solution when the backend is connected.",
-        solution_2:
-          "This is the second demo response. The second AI model will provide its solution when the backend is connected.",
-        judge: {
-          solution_1_score: 8,
-          solution_2_score: 9,
-          winner: "Solution 2",
-          reasoning:
-            "Demo evaluation only. Real scores and recommendations will come from the judge model after backend integration.",
-        },
-        isNew: true,
+    const newMessage = {
+      id: crypto.randomUUID(),
+      problem: problemText,
+      solution_1:
+        "This is a frontend demo response. The first AI model will provide its solution when the backend is connected.",
+      solution_2:
+        "This is the second demo response. The second AI model will provide its solution when the backend is connected.",
+      judge: {
+        solution_1_score: 8,
+        solution_2_score: 9,
+        winner: "Solution 2",
+        reasoning:
+          "Demo evaluation only. Real scores and recommendations will come from the judge model after backend integration.",
       },
-    ]);
+      isNew: true,
+    };
 
-    setInputValue("");
-  };
 
   const handleKeyDown = (e) => {
     if (e.key !== "Enter" || e.shiftKey) return;
@@ -83,17 +113,21 @@ export default function ChatInterface() {
   }, [messages]);
 
   return (
-    <div className="flex min-h-screen w-full overflow-x-hidden bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
+    <div className="flex min-h-screen w-full overflow-x-clip bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
       <BattleSidebar
         isOpen={isSidebarOpen}
         user={user}
+        battleList={battleList}
+        activeBattleId={activeBattleId}
         onClose={() => setIsSidebarOpen(false)}
         onOpenAuth={() => setIsAuthModalOpen(true)}
         onNewBattle={handleNewBattle}
+        onSelectBattle={handleSelectBattle}
+        onDeleteBattle={handleDeleteBattle}
       />
 
-      <main className="flex flex-1 min-w-0 flex-col">
-        <ChatHeader 
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+        <ChatHeader
           user={user}
           messages={messages}
           activeBattleId={activeBattleId}
@@ -104,19 +138,20 @@ export default function ChatInterface() {
           onSignOut={() => {
             setUser(null);
             setMessages([]);
+            setBattleList([]);
             setActiveBattleId(null);
           }}
           onJudgeProviderChange={setJudgeProvider}
         />
 
-        <MessageList 
+        <MessageList
           messages={messages}
           isLoadingBattle={isLoadingBattle}
           isStreaming={isStreaming}
           endOfMessagesRef={endOfMessagesRef}
         />
 
-        <ChatComposer  
+        <ChatComposer
           inputValue={inputValue}
           messages={messages}
           isStreaming={isStreaming}
@@ -126,10 +161,9 @@ export default function ChatInterface() {
           onFocus={handleTextareaFocus}
           onSubmit={handleSend}
         />
+      </div>
 
-      </main>
-
-      <AuthModal 
+      <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
       />
