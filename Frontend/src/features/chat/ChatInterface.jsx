@@ -15,7 +15,14 @@ export default function ChatInterface() {
   const [inputValue, setInputValue] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [isLoadingBattle, setIsLoadingBattle] = useState(false);
-  const [battleList, setBattleList] = useState([]);
+  const [battleList, setBattleList] = useState(() => {
+    try {
+      const savedBattles = localStorage.getItem("ai-arena-battles");
+      return savedBattles ? JSON.parse(savedBattles) : [];
+    } catch {
+      return [];
+    }
+  });
 
   const textareaRef = useRef(null);
   const endOfMessagesRef = useRef(null);
