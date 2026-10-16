@@ -5,6 +5,8 @@ import ChatComposer from "./components/ChatComposer";
 import MessageList from "./components/MessageList";
 import AuthModal from "../../components/AuthModal";
 
+const STORAGE_KEY = "ai-arena-battles";
+
 export default function ChatInterface() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -15,10 +17,12 @@ export default function ChatInterface() {
   const [inputValue, setInputValue] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [isLoadingBattle, setIsLoadingBattle] = useState(false);
+
   const [battleList, setBattleList] = useState(() => {
     try {
-      const savedBattles = localStorage.getItem("ai-arena-battles");
-      return savedBattles ? JSON.parse(savedBattles) : [];
+      const savedBattles = localStorage.getItem(STORAGE_KEY);
+      const parsedBattles = savedBattles ? JSON.parse(savedBattles) : [];
+      return Array.isArray(parsedBattles) ? parsedBattles : [];
     } catch {
       return [];
     }
@@ -26,6 +30,33 @@ export default function ChatInterface() {
 
   const textareaRef = useRef(null);
   const endOfMessagesRef = useRef(null);
+  const hasRestoredBattle = useRef(false);
+
+  useEffect(() => {
+    if (hasRestoredBattle.current) return;
+    hasRestoredBattle.current = true;
+
+    if (battleList.length > 0) {
+      const savedBattle = battleList[0];
+      setActiveBattleId(savedBattle.id);
+      setMessages(savedBattle.messages || []);
+    }
+  }, [battleList]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(battleList));
+    } catch (error) {
+      console.error("Unable to save battles:", error);
+    }
+  }, [battleList]);
+
+  useEffect(() => {
+    endOfMessagesRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
+  }, [messages]);
 
   const handleNewBattle = () => {
     const newBattle = {
@@ -52,19 +83,23 @@ export default function ChatInterface() {
     if (!selectedBattle) return;
 
     setActiveBattleId(battleId);
-    setMessages(selectedBattle.messages);
+    setMessages(selectedBattle.messages || []);
     setInputValue("");
+    setIsStreaming(false);
     setIsSidebarOpen(false);
   };
 
   const handleDeleteBattle = (battleId) => {
-    setBattleList((prev) =>
-      prev.filter((battle) => battle.id !== battleId)
+    const remainingBattles = battleList.filter(
+      (battle) => battle.id !== battleId
     );
 
+    setBattleList(remainingBattles);
+
     if (activeBattleId === battleId) {
-      setActiveBattleId(null);
-      setMessages([]);
+      const nextBattle = remainingBattles[0] || null;
+      setActiveBattleId(nextBattle?.id || null);
+      setMessages(nextBattle?.messages || []);
       setInputValue("");
     }
   };
@@ -73,7 +108,6 @@ export default function ChatInterface() {
     e?.preventDefault();
 
     const problemText = inputValue.trim();
-
     if (!problemText || isStreaming) return;
 
     const newMessage = {
@@ -93,49 +127,42 @@ export default function ChatInterface() {
       isNew: true,
     };
 
-        let battleId = activeBattleId;
+    const currentBattle = battleList.find(
+      (battle) => battle.id === activeBattleId
+    );
 
-    if (!battleId) {
-      const newBattle = {
-        id: crypto.randomUUID(),
-        title:
-          problemText.length > 32
-            ? `${problemText.slice(0, 32)}...`
-            : problemText,
-        createdAt: new Date().toISOString(),
-        messages: [newMessage],
-      };
+    const battleId = activeBattleId || crypto.randomUUID();
 
-      battleId = newBattle.id;
-      setBattleList((prev) => [newBattle, ...prev]);
-      setActiveBattleId(battleId);
-      setMessages([newMessage]);
-    } else {
-      setMessages((prev) => {
-        const updatedMessages = [...prev, newMessage];
+    const updatedMessages = [...messages, newMessage];
 
-        setBattleList((battles) =>
-          battles.map((battle) =>
-            battle.id === battleId
-              ? {
-                  ...battle,
-                  title:
-                    battle.messages.length === 0 &&
-                    battle.title === "New Battle"
-                      ? problemText.length > 32
-                        ? `${problemText.slice(0, 32)}...`
-                        : problemText
-                      : battle.title,
-                  messages: updatedMessages,
-                }
-              : battle
-          )
+    const title =
+      !currentBattle || currentBattle.title === "New Battle"
+        ? problemText.length > 32
+          ? `${problemText.slice(0, 32)}...`
+          : problemText
+        : currentBattle.title;
+
+    const updatedBattle = {
+      id: battleId,
+      title,
+      createdAt: currentBattle?.createdAt || new Date().toISOString(),
+      messages: updatedMessages,
+    };
+
+    setBattleList((prev) => {
+      const exists = prev.some((battle) => battle.id === battleId);
+
+      if (exists) {
+        return prev.map((battle) =>
+          battle.id === battleId ? updatedBattle : battle
         );
+      }
 
-        return updatedMessages;
-      });
-    }
+      return [updatedBattle, ...prev];
+    });
 
+    setActiveBattleId(battleId);
+    setMessages(updatedMessages);
     setInputValue("");
   };
 
@@ -156,24 +183,6 @@ export default function ChatInterface() {
       });
     }, 300);
   };
-
-  useEffect(() => {
-    endOfMessagesRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "end",
-    });
-  }, [messages]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        "ai-arena-battles",
-        JSON.stringify(battleList)
-      );
-    } catch (error) {
-      console.error("Unable to save battles:", error);
-    }
-  }, [battleList]);
 
   return (
     <div className="flex min-h-screen w-full overflow-x-clip bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
@@ -203,6 +212,7 @@ export default function ChatInterface() {
             setMessages([]);
             setBattleList([]);
             setActiveBattleId(null);
+            localStorage.removeItem(STORAGE_KEY);
           }}
           onJudgeProviderChange={setJudgeProvider}
         />
