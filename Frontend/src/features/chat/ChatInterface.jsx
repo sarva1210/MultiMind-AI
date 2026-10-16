@@ -86,6 +86,51 @@ export default function ChatInterface() {
       isNew: true,
     };
 
+        let battleId = activeBattleId;
+
+    if (!battleId) {
+      const newBattle = {
+        id: crypto.randomUUID(),
+        title:
+          problemText.length > 32
+            ? `${problemText.slice(0, 32)}...`
+            : problemText,
+        createdAt: new Date().toISOString(),
+        messages: [newMessage],
+      };
+
+      battleId = newBattle.id;
+      setBattleList((prev) => [newBattle, ...prev]);
+      setActiveBattleId(battleId);
+      setMessages([newMessage]);
+    } else {
+      setMessages((prev) => {
+        const updatedMessages = [...prev, newMessage];
+
+        setBattleList((battles) =>
+          battles.map((battle) =>
+            battle.id === battleId
+              ? {
+                  ...battle,
+                  title:
+                    battle.messages.length === 0 &&
+                    battle.title === "New Battle"
+                      ? problemText.length > 32
+                        ? `${problemText.slice(0, 32)}...`
+                        : problemText
+                      : battle.title,
+                  messages: updatedMessages,
+                }
+              : battle
+          )
+        );
+
+        return updatedMessages;
+      });
+    }
+
+    setInputValue("");
+  };
 
   const handleKeyDown = (e) => {
     if (e.key !== "Enter" || e.shiftKey) return;
