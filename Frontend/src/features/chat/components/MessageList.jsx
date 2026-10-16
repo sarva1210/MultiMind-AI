@@ -9,7 +9,7 @@ export default function MessageList({
   endOfMessagesRef,
 }) {
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-4 md:px-8">
+    <main className="flex w-full min-w-0 flex-1 flex-col px-4 py-4 md:px-6">
       {isLoadingBattle ? (
         <div className="flex flex-1 items-center justify-center">
           <div className="space-y-3 text-center">
@@ -36,7 +36,7 @@ export default function MessageList({
         </div>
       ) : (
         messages.map((msg, idx) => (
-          <div key={msg.id} className="mb-8">
+          <div key={msg.id} className="mb-6 w-full min-w-0">
             <div className="mb-3 flex items-center gap-2">
               <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                 <Swords className="h-3 w-3" />
@@ -69,7 +69,7 @@ export default function MessageList({
         ))
       )}
 
-      <div ref={endOfMessagesRef} className="h-4 shrink-0" />
+      <div ref={endOfMessagesRef} className="h-2 shrink-0" />
     </main>
   );
 }
