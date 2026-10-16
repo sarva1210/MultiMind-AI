@@ -164,6 +164,17 @@ export default function ChatInterface() {
     });
   }, [messages]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        "ai-arena-battles",
+        JSON.stringify(battleList)
+      );
+    } catch (error) {
+      console.error("Unable to save battles:", error);
+    }
+  }, [battleList]);
+
   return (
     <div className="flex min-h-screen w-full overflow-x-clip bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
       <BattleSidebar
