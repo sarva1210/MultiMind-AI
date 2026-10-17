@@ -1,5 +1,14 @@
 import { Plus, Swords, LogIn, X } from "lucide-react";
 
+const formatDate = (date) => {
+  if (!date) return "";
+
+  return new Date(date).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+  });
+};
+
 export default function BattleSidebar({
   isOpen,
   user,
