@@ -11,7 +11,6 @@ export default function BattleSidebar({
   onSelectBattle,
   onDeleteBattle,
 }) {
-  
   if (!isOpen) return null;
 
   return (
@@ -29,6 +28,7 @@ export default function BattleSidebar({
           </h2>
 
           <button
+            type="button"
             onClick={onClose}
             className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
           >
@@ -37,6 +37,7 @@ export default function BattleSidebar({
         </div>
 
         <button
+          type="button"
           onClick={onNewBattle}
           className="mb-5 flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm hover:bg-zinc-200 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-800"
         >
@@ -66,17 +67,23 @@ export default function BattleSidebar({
                 <button
                   type="button"
                   onClick={() => onSelectBattle?.(battle.id)}
-                  className="min-w-0 flex-1 truncate px-3 py-2.5 text-left text-sm"
+                  className="min-w-0 flex-1 px-3 py-2.5 text-left"
                   title={battle.title}
                 >
-                  {battle.title}
+                  <span className="block truncate text-sm font-medium">
+                    {battle.title}
+                  </span>
+
+                  <span className="mt-1 block text-[10px] text-zinc-400">
+                    {formatDate(battle.createdAt)}
+                  </span>
                 </button>
 
                 <button
                   type="button"
                   aria-label={`Delete ${battle.title}`}
                   onClick={() => onDeleteBattle?.(battle.id)}
-                  className="mr-2 rounded p-1 text-zinc-400 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-950"
+                  className="mr-2 shrink-0 rounded p-1 text-zinc-400 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-950"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -93,6 +100,7 @@ export default function BattleSidebar({
               </p>
 
               <button
+                type="button"
                 onClick={onOpenAuth}
                 className="mx-auto flex items-center gap-2 rounded-lg bg-zinc-900 px-3 py-2 text-xs text-white dark:bg-zinc-100 dark:text-zinc-900"
               >
