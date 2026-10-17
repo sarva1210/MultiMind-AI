@@ -64,9 +64,9 @@ export default function ChatHeader({
             onChange={(e) => onJudgeProviderChange(e.target.value)}
             className="max-w-32 cursor-pointer bg-transparent text-xs font-semibold text-zinc-900 outline-none dark:text-zinc-100 md:max-w-none md:text-sm"
           >
-            <option value="gemini">Gemini Flash</option>
-            <option value="mistral">Mistral Medium</option>
-            <option value="cohere">Cohere Command</option>
+            <option className=" bg-zinc-900 text-zinc-100 " value="gemini">Gemini Flash</option>
+            <option className=" bg-zinc-900 text-zinc-100 " value="mistral">Mistral Medium</option>
+            <option className=" bg-zinc-900 text-zinc-100 " value="cohere">Cohere Command</option>
           </select>
         </div>
 
