@@ -72,7 +72,7 @@ export default function ChatInterface() {
     setInputValue("");
     setIsStreaming(false);
     setIsLoadingBattle(false);
-    setIsSidebarOpen(false);
+    // setIsSidebarOpen(false);
   };
 
   const handleSelectBattle = (battleId) => {
@@ -86,7 +86,7 @@ export default function ChatInterface() {
     setMessages(selectedBattle.messages || []);
     setInputValue("");
     setIsStreaming(false);
-    setIsSidebarOpen(false);
+    // setIsSidebarOpen(false);
   };
 
   const handleDeleteBattle = (battleId) => {
