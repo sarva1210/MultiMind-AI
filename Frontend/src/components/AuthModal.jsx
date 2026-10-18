@@ -24,7 +24,7 @@ export default function AuthModal({ isOpen, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-3 backdrop-blur-sm sm:items-center sm:p-5"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto  p-3 backdrop-blur-sm sm:items-center sm:p-5"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
