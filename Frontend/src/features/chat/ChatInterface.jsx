@@ -12,7 +12,9 @@ export default function ChatInterface() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [judgeProvider, setJudgeProvider] = useState("gemini");
+  const [judgeProvider, setJudgeProvider] = useState(() => {
+    return localStorage.getItem("ai-arena-judge") || "gemini";
+  });
   const [activeBattleId, setActiveBattleId] = useState(null);
   const [inputValue, setInputValue] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -27,6 +29,10 @@ export default function ChatInterface() {
       return [];
     }
   });
+
+  useEffect(() => {
+    localStorage.setItem("ai-arena-judge", judgeProvider);
+  }, [judgeProvider]);
 
   const textareaRef = useRef(null);
   const endOfMessagesRef = useRef(null);
