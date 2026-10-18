@@ -1,4 +1,3 @@
-
 import { Swords, MessageSquare, Sparkles } from "lucide-react";
 import ArenaResponse from "../../../components/ArenaResponse";
 import UserMessage from "../../../components/UserMessage";
