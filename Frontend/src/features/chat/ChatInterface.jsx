@@ -7,47 +7,41 @@ import AuthModal from "../../components/AuthModal";
 
 const STORAGE_KEY = "ai-arena-battles";
 
+function getSavedBattles() {
+  try {
+    const savedBattles = localStorage.getItem(STORAGE_KEY);
+    const parsedBattles = savedBattles ? JSON.parse(savedBattles) : [];
+    return Array.isArray(parsedBattles) ? parsedBattles : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function ChatInterface() {
+  const [battleList, setBattleList] = useState(getSavedBattles);
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [user, setUser] = useState(null);
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(
+    () => battleList[0]?.messages || []
+  );
   const [judgeProvider, setJudgeProvider] = useState(() => {
     return localStorage.getItem("ai-arena-judge") || "gemini";
   });
-  const [activeBattleId, setActiveBattleId] = useState(null);
+  const [activeBattleId, setActiveBattleId] = useState(
+    () => battleList[0]?.id || null
+  );
   const [inputValue, setInputValue] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [isLoadingBattle, setIsLoadingBattle] = useState(false);
 
-  const [battleList, setBattleList] = useState(() => {
-    try {
-      const savedBattles = localStorage.getItem(STORAGE_KEY);
-      const parsedBattles = savedBattles ? JSON.parse(savedBattles) : [];
-      return Array.isArray(parsedBattles) ? parsedBattles : [];
-    } catch {
-      return [];
-    }
-  });
+  const textareaRef = useRef(null);
+  const endOfMessagesRef = useRef(null);
 
   useEffect(() => {
     localStorage.setItem("ai-arena-judge", judgeProvider);
   }, [judgeProvider]);
-
-  const textareaRef = useRef(null);
-  const endOfMessagesRef = useRef(null);
-  const hasRestoredBattle = useRef(false);
-
-  useEffect(() => {
-    if (hasRestoredBattle.current) return;
-    hasRestoredBattle.current = true;
-
-    if (battleList.length > 0) {
-      const savedBattle = battleList[0];
-      setActiveBattleId(savedBattle.id);
-      setMessages(savedBattle.messages || []);
-    }
-  }, [battleList]);
 
   useEffect(() => {
     try {
@@ -78,7 +72,6 @@ export default function ChatInterface() {
     setInputValue("");
     setIsStreaming(false);
     setIsLoadingBattle(false);
-    // setIsSidebarOpen(false);
   };
 
   const handleSelectBattle = (battleId) => {
@@ -92,7 +85,6 @@ export default function ChatInterface() {
     setMessages(selectedBattle.messages || []);
     setInputValue("");
     setIsStreaming(false);
-    // setIsSidebarOpen(false);
   };
 
   const handleDeleteBattle = (battleId) => {
@@ -138,7 +130,6 @@ export default function ChatInterface() {
     );
 
     const battleId = activeBattleId || crypto.randomUUID();
-
     const updatedMessages = [...messages, newMessage];
 
     const title =
