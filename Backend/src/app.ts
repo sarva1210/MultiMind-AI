@@ -8,4 +8,8 @@ app.use(cors({
   origin: "http://localhost:5173"
 }));
 
+app.get("/healthz", (_req, res) => {
+  res.json({ status: "app is running" });
+});
+
 export default app 
