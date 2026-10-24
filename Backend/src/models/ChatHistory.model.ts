@@ -40,5 +40,13 @@ const ChatHistorySchema = new mongoose.Schema({
             type: Number,
             required: true
         },
-    }
+        solution_1_reasoning: {
+            type: String,
+            required: true
+        },
+        solution_2_reasoning: {
+            type: String,
+            required: true
+        }
+    },
 });
