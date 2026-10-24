@@ -30,5 +30,15 @@ const ChatHistorySchema = new mongoose.Schema({
     judge_provider: {
         type: String,
         required: true
+    },
+    judge: {
+        solution_1_score: {
+            type: Number,
+            required: true
+        },
+        solution_2_score: {
+            type: Number,
+            required: true
+        },
     }
 });
