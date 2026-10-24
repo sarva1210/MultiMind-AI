@@ -27,4 +27,8 @@ const ChatHistorySchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    judge_provider: {
+        type: String,
+        required: true
+    }
 });
