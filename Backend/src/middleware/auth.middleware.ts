@@ -51,5 +51,9 @@ export const authMiddleware = (
         
         next();
     
+    }catch {
+        return res.status(401).json({
+            error: "Unauthorized: Invalid or expired token"
+        });
     }
 };
