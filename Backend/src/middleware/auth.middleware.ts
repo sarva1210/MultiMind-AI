@@ -10,15 +10,17 @@ export interface AuthenticatedRequest extends Request {
 }
 
 export const authMiddleware = (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
 ) => {
-  const authHeader = req.headers.authorization;
+    const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({
-      error: "Unauthorized: No token provided"
-    });
-  }
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({
+            error: "Unauthorized: No token provided"
+        });
+    }
+
+    const token = authHeader.split(" ")[1];
 };
