@@ -54,3 +54,5 @@ const ChatHistorySchema = new mongoose.Schema({
         default: Date.now
     }
 });
+
+export const ChatHistory = mongoose.model( "ChatHistory", ChatHistorySchema );
