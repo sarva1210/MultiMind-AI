@@ -42,5 +42,14 @@ export const authMiddleware = (
             email: string;
             name: string;
         }
+        
+        req.user = {
+            id: decoded.id,
+            email: decoded.email,
+            name: decoded.name
+        }
+        
+        next();
+    
     }
 };
