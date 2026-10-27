@@ -33,4 +33,8 @@ export const register = async (req: Request, res: Response) => {
     }
 
     const normalizedEmail = email.toLowerCase().trim();
+
+    const existingUser = await User.findOne({
+        email: normalizedEmail
+    });
 };
