@@ -31,4 +31,6 @@ export const register = async (req: Request, res: Response) => {
             error: "Name, email and password are required"
         });
     }
+
+    const normalizedEmail = email.toLowerCase().trim();
 };
