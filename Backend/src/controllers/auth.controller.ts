@@ -43,4 +43,6 @@ export const register = async (req: Request, res: Response) => {
             error: "User already exists with this email"
         });
     }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
 };
