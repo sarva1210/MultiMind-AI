@@ -22,3 +22,13 @@ const createToken = (user: {
     JWT_SECRET,
     { expiresIn: "7d" });
 };
+
+export const register = async (req: Request, res: Response) => {
+    const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+        return res.status(400).json({
+            error: "Name, email and password are required"
+        });
+    }
+};
