@@ -37,4 +37,10 @@ export const register = async (req: Request, res: Response) => {
     const existingUser = await User.findOne({
         email: normalizedEmail
     });
+
+    if (existingUser) {
+        return res.status(409).json({
+            error: "User already exists with this email"
+        });
+    }
 };
