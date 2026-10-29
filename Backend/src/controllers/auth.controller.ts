@@ -84,4 +84,13 @@ export const login = async (req: Request, res: Response) => {
             error: "Invalid email or password"
         });
     }
+
+    return res.json({
+        token: createToken(user),
+        user: {
+            id: String(user._id),
+            name: user.name,
+            email: user.email
+        }
+    });
 };
