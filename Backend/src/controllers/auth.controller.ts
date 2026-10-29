@@ -61,4 +61,10 @@ export const login = async (req: Request, res: Response) => {
             error: "Email and password are required"
         });
     }
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const user = await User.findOne({
+        email: normalizedEmail
+    });
 };
