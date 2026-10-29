@@ -73,4 +73,9 @@ export const login = async (req: Request, res: Response) => {
             error: "Invalid email or password"
         });
     }
+
+    const isPasswordMatch = await bcrypt.compare(
+        password,
+        user.password
+    )
 };
