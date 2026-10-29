@@ -78,4 +78,10 @@ export const login = async (req: Request, res: Response) => {
         password,
         user.password
     )
+
+    if (!isPasswordMatch) {
+        return res.status(401).json({
+            error: "Invalid email or password"
+        });
+    }
 };
