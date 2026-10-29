@@ -67,4 +67,10 @@ export const login = async (req: Request, res: Response) => {
     const user = await User.findOne({
         email: normalizedEmail
     });
+
+    if (!user) {
+        return res.status(401).json({
+            error: "Invalid email or password"
+        });
+    }
 };
