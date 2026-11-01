@@ -5,4 +5,12 @@ import type { AuthenticatedRequest } from "../middleware/auth.middleware.js";
 export const getHistory = async (
   req: AuthenticatedRequest,
   res: Response
-) => {};
+) => {
+  const userId = req.user?.id;
+
+  if (!userId) {
+    return res.status(401).json({
+      error: "Unauthorized"
+    });
+  }
+};
