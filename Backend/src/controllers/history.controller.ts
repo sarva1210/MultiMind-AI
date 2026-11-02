@@ -20,3 +20,10 @@ export const getHistory = async (
         history
     });
 };
+
+export const saveHistory = async (
+    req: AuthenticatedRequest,
+    res: Response
+) => {
+
+};
