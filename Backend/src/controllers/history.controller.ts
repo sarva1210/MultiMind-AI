@@ -26,4 +26,6 @@ export const saveHistory = async (
     res: Response
 ) => {
     const userId = req.user?.id;
+    
+    const { battleId, turnIndex, problem, solution_1, solution_2, judge_provider, judge } = req.body;
 };
