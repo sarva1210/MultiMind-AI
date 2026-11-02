@@ -28,4 +28,10 @@ export const saveHistory = async (
     const userId = req.user?.id;
     
     const { battleId, turnIndex, problem, solution_1, solution_2, judge_provider, judge } = req.body;
+
+    if (!userId || !battleId || !problem || !solution_1 || !solution_2 || !judge) {
+        return res.status(400).json({
+            error: "Required battle data is missing"
+        });
+    }
 };
