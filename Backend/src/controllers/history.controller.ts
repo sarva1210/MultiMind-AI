@@ -34,4 +34,15 @@ export const saveHistory = async (
             error: "Required battle data is missing"
         });
     }
+
+    const newHistory = await ChatHistory.create({
+        userId,
+        battleId,
+        turnIndex,
+        problem,
+        solution_1,
+        solution_2,
+        judge_provider,
+        judge
+    });
 };
