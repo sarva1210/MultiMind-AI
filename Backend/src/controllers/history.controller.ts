@@ -25,5 +25,5 @@ export const saveHistory = async (
     req: AuthenticatedRequest,
     res: Response
 ) => {
-
+    const userId = req.user?.id;
 };
