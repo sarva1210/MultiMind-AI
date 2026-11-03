@@ -6,3 +6,5 @@ const router = Router();
 
 router.get("/", authMiddleware, getHistory);
 router.post("/", authMiddleware, saveHistory);
+
+export default router;
