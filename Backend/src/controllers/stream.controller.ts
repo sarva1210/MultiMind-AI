@@ -14,6 +14,10 @@ export const streamBattle = async (
 
     const { problem, battleId } = req.body;
     if (!problem || !battleId) {
+        res.write(`data: ${JSON.stringify({
+            type: "error",
+            message: "Problem and battleId are required"
+        })}\n\n`);
 
         return res.end();
     }
