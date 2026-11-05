@@ -11,4 +11,10 @@ export const streamBattle = async (
     res.flushHeaders();
 
     res.write(`data: ${JSON.stringify({ type: "start" })}\n\n`);
+
+    const { problem, battleId } = req.body;
+    if (!problem || !battleId) {
+
+        return res.end();
+    }
 };
