@@ -5,7 +5,7 @@ import config from "../config/config.js";
 
 // google
 export const geminiModel = new ChatGoogle({
-    model: "openai/gpt-oss-120b",
+    model: "gemini-2.5-flash",
     temperature: 0.7,
     apiKey: config.GOOGLE_API_KEY,
 })
