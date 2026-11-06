@@ -21,4 +21,14 @@ export const streamBattle = async (
 
         return res.end();
     }
+
+    const userId = req.user?.id;
+    if (!userId) {
+        res.write(`data: ${JSON.stringify({
+            type: "error",
+            message: "Unauthorized"
+        })}\n\n`);
+
+        return res.end();
+    }
 };
