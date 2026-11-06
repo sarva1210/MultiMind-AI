@@ -16,3 +16,9 @@ export const mistralAIModel = new ChatGroq({
     temperature: 0.7,
     apiKey: config.MISTRAL_API_KEY,
 })
+
+// cohore
+export const cohereModel = new ChatCohere({
+    model: "command-a-03-2025",
+    apiKey: config.COHERE_API_KEY,
+})
