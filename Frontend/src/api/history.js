@@ -1,4 +1,3 @@
-
 import api from "./auth.js";
 
 // Fetch logged-in user's battle history
