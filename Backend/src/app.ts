@@ -2,6 +2,7 @@ import express from "express"
 import cors from "cors"
 import authRoutes from "./routes/auth.routes.js";
 import historyRoutes from "./routes/history.routes.js";
+import streamRoutes from "./routes/stream.routes.js";
 
 const app = express();
 
