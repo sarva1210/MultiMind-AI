@@ -20,20 +20,64 @@ function getSavedBattles() {
     }
 }
 
+function formatHistory(history) {
+    const groups = {};
+
+    history.forEach((item) => {
+        const id = item.battleId;
+
+        if (!groups[id]) {
+            groups[id] = {
+                id,
+                title: item.problem,
+                createdAt: item.createdAt,
+                messages: [],
+            };
+        }
+
+        groups[id].messages.push({
+            id: `${id}-${item.turnIndex}`,
+            turnIndex: item.turnIndex,
+            problem: item.problem,
+            solution_1: item.solution_1,
+            solution_2: item.solution_2,
+            judge: item.judge,
+            isNew: false,
+        });
+    });
+
+    return Object.values(groups)
+        .map((battle) => ({
+            ...battle,
+            messages: battle.messages.sort(
+                (a, b) => a.turnIndex - b.turnIndex
+            ),
+        }))
+        .sort(
+            (a, b) =>
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime()
+        );
+}
+
 export default function ChatInterface() {
     const [battleList, setBattleList] = useState(getSavedBattles);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [user, setUser] = useState(null);
+
     const [messages, setMessages] = useState(
         () => battleList[0]?.messages || []
     );
+
     const [judgeProvider, setJudgeProvider] = useState(
         () => localStorage.getItem("ai-arena-judge") || "gemini"
     );
+
     const [activeBattleId, setActiveBattleId] = useState(
         () => battleList[0]?.id || null
     );
+
     const [inputValue, setInputValue] = useState("");
     const [isStreaming, setIsStreaming] = useState(false);
     const [isLoadingBattle, setIsLoadingBattle] = useState(false);
@@ -42,14 +86,24 @@ export default function ChatInterface() {
     const endOfMessagesRef = useRef(null);
     const abortControllerRef = useRef(null);
 
+    // Save selected judge provider
     useEffect(() => {
         localStorage.setItem("ai-arena-judge", judgeProvider);
     }, [judgeProvider]);
 
+    // Save battles locally
     useEffect(() => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(battleList));
+        try {
+            localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify(battleList)
+            );
+        } catch (error) {
+            console.error("Unable to save battles:", error);
+        }
     }, [battleList]);
 
+    // Auto-scroll messages
     useEffect(() => {
         endOfMessagesRef.current?.scrollIntoView({
             behavior: "smooth",
@@ -57,67 +111,77 @@ export default function ChatInterface() {
         });
     }, [messages]);
 
-    // Restore logged-in user
+    // Load user history from MongoDB
+    const loadUserHistory = async () => {
+        const response = await getHistory();
+        const groupedBattles = formatHistory(response.history || []);
+
+        setBattleList(groupedBattles);
+
+        if (groupedBattles.length > 0) {
+            setActiveBattleId(groupedBattles[0].id);
+            setMessages(groupedBattles[0].messages);
+        } else {
+            setActiveBattleId(null);
+            setMessages([]);
+        }
+    };
+
+    // Restore login session
     useEffect(() => {
         const restoreSession = async () => {
             if (!localStorage.getItem("token")) return;
+
+            setIsLoadingBattle(true);
 
             try {
                 const response = await getCurrentUser();
                 setUser(response.user);
 
-                const historyResponse = await getHistory();
-                const savedHistory = historyResponse.history || [];
-
-                const groupedBattles = Object.values(
-                    savedHistory.reduce((groups, item) => {
-                        const id = item.battleId;
-
-                        if (!groups[id]) {
-                            groups[id] = {
-                                id,
-                                title: item.problem,
-                                createdAt: item.createdAt,
-                                messages: [],
-                            };
-                        }
-
-                        groups[id].messages.push({
-                            id: `${id}-${item.turnIndex}`,
-                            problem: item.problem,
-                            solution_1: item.solution_1,
-                            solution_2: item.solution_2,
-                            judge: item.judge,
-                        });
-
-                        return groups;
-                    }, {})
-                );
-
-                groupedBattles.forEach((battle) => {
-                    battle.messages.sort(
-                        (a, b) => Number(a.id.split("-").pop()) -
-                            Number(b.id.split("-").pop())
-                    );
-                });
-
-                setBattleList(groupedBattles);
-
-                if (groupedBattles.length > 0) {
-                    setActiveBattleId(groupedBattles[0].id);
-                    setMessages(groupedBattles[0].messages);
-                }
+                await loadUserHistory();
             } catch (error) {
                 console.error("Session restore failed:", error);
-                localStorage.removeItem("token");
+                await logoutUser();
                 setUser(null);
+            } finally {
+                setIsLoadingBattle(false);
             }
         };
 
         restoreSession();
     }, []);
 
+    // Update one message in both active messages and battle list
+    const updateBattleMessage = (battleId, messageId, changes) => {
+        setMessages((prev) =>
+            prev.map((message) =>
+                message.id === messageId
+                    ? { ...message, ...changes }
+                    : message
+            )
+        );
+
+        setBattleList((prev) =>
+            prev.map((battle) =>
+                battle.id === battleId
+                    ? {
+                        ...battle,
+                        messages: battle.messages.map((message) =>
+                            message.id === messageId
+                                ? { ...message, ...changes }
+                                : message
+                        ),
+                    }
+                    : battle
+            )
+        );
+    };
+
+    // Create a new battle
     const handleNewBattle = () => {
+        abortControllerRef.current?.abort();
+        abortControllerRef.current = null;
+
         const newBattle = {
             id: crypto.randomUUID(),
             title: "New Battle",
@@ -132,18 +196,30 @@ export default function ChatInterface() {
         setIsStreaming(false);
     };
 
+    // Select an existing battle
     const handleSelectBattle = (battleId) => {
-        const selected = battleList.find((battle) => battle.id === battleId);
+        const selected = battleList.find(
+            (battle) => battle.id === battleId
+        );
+
         if (!selected) return;
 
         abortControllerRef.current?.abort();
+        abortControllerRef.current = null;
+
         setActiveBattleId(battleId);
         setMessages(selected.messages || []);
         setInputValue("");
         setIsStreaming(false);
     };
 
+    // Delete a battle
     const handleDeleteBattle = (battleId) => {
+        if (activeBattleId === battleId) {
+            abortControllerRef.current?.abort();
+            abortControllerRef.current = null;
+        }
+
         const remaining = battleList.filter(
             (battle) => battle.id !== battleId
         );
@@ -152,11 +228,14 @@ export default function ChatInterface() {
 
         if (activeBattleId === battleId) {
             const next = remaining[0] || null;
+
             setActiveBattleId(next?.id || null);
             setMessages(next?.messages || []);
+            setIsStreaming(false);
         }
     };
 
+    // Send prompt to AI battle backend
     const handleSend = async (e) => {
         e?.preventDefault();
 
@@ -176,9 +255,11 @@ export default function ChatInterface() {
         );
 
         const turnIndex = currentBattle?.messages?.length || 0;
+        const messageId = crypto.randomUUID();
 
         const newMessage = {
-            id: crypto.randomUUID(),
+            id: messageId,
+            turnIndex,
             problem: problemText,
             solution_1: "",
             solution_2: "",
@@ -190,10 +271,12 @@ export default function ChatInterface() {
 
         const updatedBattle = {
             id: battleId,
-            title: currentBattle?.title === "New Battle" || !currentBattle
-                ? problemText.slice(0, 32)
-                : currentBattle.title,
-            createdAt: currentBattle?.createdAt || new Date().toISOString(),
+            title:
+                currentBattle?.title === "New Battle" || !currentBattle
+                    ? problemText.slice(0, 32)
+                    : currentBattle.title,
+            createdAt:
+                currentBattle?.createdAt || new Date().toISOString(),
             messages: updatedMessages,
         };
 
@@ -222,39 +305,74 @@ export default function ChatInterface() {
                     if (event.event !== "on_chain_end") return;
 
                     const output = event.data?.output;
+
                     if (!output) return;
 
-                    setMessages((prev) => {
-                        const updated = [...prev];
-                        const last = { ...updated[updated.length - 1] };
+                    const changes = {};
 
-                        if (output.solution_1) {
-                            last.solution_1 = output.solution_1;
-                            last.solution_2 = output.solution_2;
-                        }
+                    if (output.solution_1) {
+                        changes.solution_1 = output.solution_1;
+                    }
 
-                        if (output.judge) {
-                            last.judge = output.judge;
-                            last.isNew = true;
-                        }
+                    if (output.solution_2) {
+                        changes.solution_2 = output.solution_2;
+                    }
 
-                        updated[updated.length - 1] = last;
-                        return updated;
-                    });
+                    if (output.judge) {
+                        changes.judge = output.judge;
+                    }
+
+                    if (Object.keys(changes).length > 0) {
+                        updateBattleMessage(
+                            battleId,
+                            messageId,
+                            changes
+                        );
+                    }
                 },
 
                 onError: (error) => {
                     console.error("Battle streaming failed:", error);
                 },
             });
+
+        } catch (error) {
+            console.error("Battle request failed:", error);
         } finally {
-            setIsStreaming(false);
-            abortControllerRef.current = null;
+            if (abortControllerRef.current === controller) {
+                abortControllerRef.current = null;
+                setIsStreaming(false);
+
+                setMessages((prev) =>
+                    prev.map((message) =>
+                        message.id === messageId
+                            ? { ...message, isNew: true }
+                            : message
+                    )
+                );
+
+                setBattleList((prev) =>
+                    prev.map((battle) =>
+                        battle.id === battleId
+                            ? {
+                                ...battle,
+                                messages: battle.messages.map((message) =>
+                                    message.id === messageId
+                                        ? { ...message, isNew: true }
+                                        : message
+                                ),
+                            }
+                            : battle
+                    )
+                );
+            }
         }
     };
 
+    // Enter to send, Shift + Enter for new line
     const handleKeyDown = (e) => {
         if (e.key !== "Enter" || e.shiftKey) return;
+
         e.preventDefault();
         handleSend();
     };
@@ -270,13 +388,34 @@ export default function ChatInterface() {
         }, 300);
     };
 
+    // Login or register success
+    const handleAuthSuccess = async (loggedInUser) => {
+        setUser(loggedInUser);
+        setIsLoadingBattle(true);
+
+        try {
+            await loadUserHistory();
+        } catch (error) {
+            console.error("Unable to load battle history:", error);
+        } finally {
+            setIsLoadingBattle(false);
+        }
+    };
+
+    // Sign out
     const handleSignOut = async () => {
         abortControllerRef.current?.abort();
+        abortControllerRef.current = null;
+
         await logoutUser();
+
         setUser(null);
         setMessages([]);
         setBattleList([]);
         setActiveBattleId(null);
+        setInputValue("");
+        setIsStreaming(false);
+
         localStorage.removeItem(STORAGE_KEY);
     };
 
@@ -326,12 +465,10 @@ export default function ChatInterface() {
                 />
             </div>
 
-            <AuthModal 
-              isOpen={isAuthModalOpen}
-              onClose={() => setIsAuthModalOpen(false)}
-              onAuthSuccess={(loggedInUser) => {
-                setUser(loggedInUser);
-              }}
+            <AuthModal
+                isOpen={isAuthModalOpen}
+                onClose={() => setIsAuthModalOpen(false)}
+                onAuthSuccess={handleAuthSuccess}
             />
         </div>
     );
