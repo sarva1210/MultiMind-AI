@@ -326,9 +326,12 @@ export default function ChatInterface() {
                 />
             </div>
 
-            <AuthModal
-                isOpen={isAuthModalOpen}
-                onClose={() => setIsAuthModalOpen(false)}
+            <AuthModal 
+              isOpen={isAuthModalOpen}
+              onClose={() => setIsAuthModalOpen(false)}
+              onAuthSuccess={(loggedInUser) => {
+                setUser(loggedInUser);
+              }}
             />
         </div>
     );
