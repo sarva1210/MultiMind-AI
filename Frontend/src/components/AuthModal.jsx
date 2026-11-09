@@ -1,20 +1,45 @@
 import { useState } from "react";
 import { LockKeyhole, Mail, Swords, UserRound, X } from "lucide-react";
+import { registerUser, loginUser } from "../api/auth";
 
-export default function AuthModal({ isOpen, onClose }) {
+export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
   const [mode, setMode] = useState("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   if (!isOpen) return null;
 
   const isRegister = mode === "register";
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("Form validated. Backend authentication will be connected next.");
+    setMessage("");
+    setIsLoading(true);
+
+    try {
+      const response = isRegister
+        ? await registerUser({ name, email, password })
+        : await loginUser({ email, password });
+
+      onAuthSuccess?.(response.user);
+      setMessage("Authentication successful!");
+
+      setName("");
+      setEmail("");
+      setPassword("");
+      onClose();
+    } catch (error) {
+      setMessage(
+        error.response?.data?.error ||
+        error.message ||
+        "Authentication failed. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const switchMode = (nextMode) => {
@@ -26,7 +51,7 @@ export default function AuthModal({ isOpen, onClose }) {
     <div
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden bg-black/60 p-3 backdrop-blur-sm sm:items-center sm:p-5"
       onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget && !isLoading) onClose();
       }}
     >
       <div
@@ -38,6 +63,7 @@ export default function AuthModal({ isOpen, onClose }) {
         <button
           type="button"
           onClick={onClose}
+          disabled={isLoading}
           aria-label="Close authentication modal"
           className="absolute right-3 top-3 rounded-lg p-2 text-zinc-500 transition hover:bg-zinc-100 dark:hover:bg-zinc-800"
         >
@@ -157,15 +183,19 @@ export default function AuthModal({ isOpen, onClose }) {
 
           <button
             type="submit"
-            className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 active:scale-[0.99]"
+            disabled={isLoading}
+            className="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isRegister ? "Create Account" : "Sign In"}
+            {isLoading
+              ? "Please wait..."
+              : isRegister
+                ? "Create Account"
+                : "Sign In"}
           </button>
         </form>
 
         <p className="mt-4 text-center text-xs leading-relaxed text-zinc-500">
-          Authentication is not connected yet. Your account will not be created
-          until the backend API is integrated.
+          Your account is securely authenticated using JWT.
         </p>
       </div>
     </div>
