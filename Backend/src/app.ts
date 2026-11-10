@@ -12,7 +12,8 @@ app.use("/api/history", historyRoutes);
 app.use("/api/stream", streamRoutes);
 
 app.use(cors({
-  origin: "http://localhost:5173"
+  origin: "http://localhost:5173",
+  credentials: true
 }));
 
 app.get("/healthz", (_req, res) => {
