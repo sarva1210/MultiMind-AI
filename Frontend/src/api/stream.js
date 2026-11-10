@@ -67,7 +67,6 @@ export const streamBattle = async ({
                 onMessage?.(data);
             }
         }
-
         onComplete?.();
 
     } catch (error) {
