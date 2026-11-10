@@ -74,7 +74,6 @@ export const streamBattle = async ({
         if (error.name === "AbortError") {
             return;
         }
-
         onError?.(error);
     }
 };
