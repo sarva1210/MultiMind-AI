@@ -1,12 +1,4 @@
-
-import {
-    StateGraph,
-    StateSchema,
-    START,
-    END,
-    type GraphNode,
-} from "@langchain/langgraph";
-
+import { StateGraph, StateSchema, START, END, type GraphNode } from "@langchain/langgraph";
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { z } from "zod";
 
