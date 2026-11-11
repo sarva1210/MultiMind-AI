@@ -1,4 +1,5 @@
 import { StateGraph, StateSchema, START, END, type GraphNode } from "@langchain/langgraph";
+
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { z } from "zod";
 
@@ -7,12 +8,6 @@ import {
     geminiModel,
     groqModel,
 } from "./model.ai.js";
-
-import {
-    createAgent,
-    HumanMessage,
-    providerStrategy,
-} from "langchain";
 
 // Graph state
 const state = new StateSchema({
@@ -37,7 +32,7 @@ const judgeSchema = z.object({
     solution_2_reasoning: z.string(),
 });
 
-// Generate Groq and Cohere responses
+// Generate Groq and Cohere responses in parallel
 const solutionNode: GraphNode<typeof state> = async (state) => {
     console.log("Generating solutions...");
 
@@ -65,7 +60,7 @@ const solutionNode: GraphNode<typeof state> = async (state) => {
     };
 };
 
-// Evaluate both responses
+// Judge node
 const judgeNode: GraphNode<typeof state> = async (state) => {
     console.log("Judge evaluation started...");
 
@@ -85,61 +80,72 @@ const judgeNode: GraphNode<typeof state> = async (state) => {
     }
 
     console.log("Selected judge:", judge_provider);
-    console.log("Creating judge agent...");
 
-    const judge = createAgent({
-        model: judgeModel,
-        responseFormat: providerStrategy(judgeSchema),
+    const prompt = `
+You are an impartial AI judge.
 
-        systemPrompt: `
-            You are an impartial AI judge.
+Evaluate the following two AI-generated solutions.
 
-            Evaluate both AI-generated solutions based on:
-            - Accuracy
-            - Relevance
-            - Clarity
-            - Completeness
-            - Correctness
+Problem:
+${problem}
 
-            Give each solution a score between 0 and 10.
-            Provide separate reasoning for both scores.
-            Be fair and objective.
-        `,
-    });
+Solution 1 (Groq):
+${solution_1}
 
-    console.log("Calling Gemini/Judge API...");
+Solution 2 (Cohere):
+${solution_2}
+
+Evaluate both solutions based on:
+1. Accuracy
+2. Relevance
+3. Clarity
+4. Completeness
+5. Correctness
+
+Give each solution a score between 0 and 10.
+
+Return ONLY valid JSON in this exact format:
+{
+    "solution_1_score": 8,
+    "solution_2_score": 9,
+    "solution_1_reasoning": "Explanation of solution 1 score",
+    "solution_2_reasoning": "Explanation of solution 2 score"
+}
+
+Do not include markdown or code fences.
+`;
 
     try {
-        const judgeResponse = await judge.invoke({
-            messages: [
-                new HumanMessage(`
-                    Problem:
-                    ${problem}
+        console.log("Calling judge API...");
 
-                    Solution 1 (Groq):
-                    ${solution_1}
+        const response = await judgeModel.invoke(prompt);
 
-                    Solution 2 (Cohere):
-                    ${solution_2}
+        console.log("Judge API returned!");
 
-                    Evaluate both solutions and provide scores
-                    and reasoning in the required structured format.
-                `),
-            ],
-        });
+        const content = response.content;
 
-        console.log("Gemini/Judge API returned!");
-        console.log("Complete judge response:", judgeResponse);
+        const responseText = typeof content === "string"
+            ? content
+            : Array.isArray(content)
+                ? content
+                    .filter((part) => part.type === "text")
+                    .map((part) => part.text)
+                    .join("\n")
+                : "";
 
-        const structuredResponse = judgeResponse.structuredResponse;
-
-        console.log("Structured judge response:", structuredResponse);
-
-        if (!structuredResponse) {
-            throw new Error("Judge returned no structured response");
+        if (!responseText) {
+            throw new Error("Judge returned an empty response");
         }
 
-        const validatedJudge = judgeSchema.parse(structuredResponse);
+        // Remove markdown code fences if present
+        const cleanedResponse = responseText
+            .replace(/```json/gi, "")
+            .replace(/```/g, "")
+            .trim();
+
+        const parsedResponse = JSON.parse(cleanedResponse);
+
+        const validatedJudge = judgeSchema.parse(parsedResponse);
 
         console.log("Judge evaluation completed:", validatedJudge);
 
@@ -167,7 +173,7 @@ export default async function (
     problem: string,
     judge_provider: string = "gemini"
 ) {
-    const stream = graph.streamEvents(
+    return graph.streamEvents(
         {
             problem,
             judge_provider,
@@ -176,6 +182,4 @@ export default async function (
             version: "v2",
         }
     );
-
-    return stream;
 }
