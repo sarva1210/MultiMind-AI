@@ -81,30 +81,28 @@ const judgeNode: GraphNode<typeof state> = async (state) => {
 
     console.log("Selected judge:", judge_provider);
 
-    const prompt = `
-You are an impartial AI judge.
+    const prompt = ` You are an impartial AI judge.
+    Evaluate the following two AI-generated solutions.
 
-Evaluate the following two AI-generated solutions.
+    Problem:
+    ${problem}
 
-Problem:
-${problem}
+    Solution 1 (Groq):
+    ${solution_1}
 
-Solution 1 (Groq):
-${solution_1}
+    Solution 2 (Cohere):
+    ${solution_2}
 
-Solution 2 (Cohere):
-${solution_2}
+    Evaluate both solutions based on:
+    1. Accuracy
+    2. Relevance
+    3. Clarity
+    4. Completeness
+    5. Correctness
 
-Evaluate both solutions based on:
-1. Accuracy
-2. Relevance
-3. Clarity
-4. Completeness
-5. Correctness
+    Give each solution a score between 0 and 10.
 
-Give each solution a score between 0 and 10.
-
-Return ONLY valid JSON in this exact format:
+    Return ONLY valid JSON in this exact format:
 {
     "solution_1_score": 8,
     "solution_2_score": 9,
