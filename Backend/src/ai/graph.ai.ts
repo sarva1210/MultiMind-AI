@@ -103,15 +103,14 @@ const judgeNode: GraphNode<typeof state> = async (state) => {
     Give each solution a score between 0 and 10.
 
     Return ONLY valid JSON in this exact format:
-{
-    "solution_1_score": 8,
-    "solution_2_score": 9,
-    "solution_1_reasoning": "Explanation of solution 1 score",
-    "solution_2_reasoning": "Explanation of solution 2 score"
-}
+    {
+        "solution_1_score": 8,
+        "solution_2_score": 9,
+        "solution_1_reasoning": "Explanation of solution 1 score",
+        "solution_2_reasoning": "Explanation of solution 2 score"
+    }
 
-Do not include markdown or code fences.
-`;
+    Do not include markdown or code fences.`;
 
     try {
         console.log("Calling judge API...");
