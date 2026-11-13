@@ -8,10 +8,15 @@ export const streamBattle = async ({
     onMessage,
     onError,
     onComplete,
-    signal
-}) => {
+    signal}) => {
+    let reader;
+
     try {
         const token = localStorage.getItem("token");
+
+        if (!token) {
+            throw new Error("Please login to start an AI battle");
+        }
 
         const response = await fetch(`${API_URL}/api/stream`, {
             method: "POST",
@@ -29,17 +34,50 @@ export const streamBattle = async ({
         });
 
         if (!response.ok) {
-            throw new Error(`Request failed: ${response.status}`);
+            let errorMessage = `Request failed: ${response.status}`;
+
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorMessage;
+            } catch {
+                // Keep default error message
+            }
+
+            throw new Error(errorMessage);
         }
 
         if (!response.body) {
             throw new Error("Streaming is not supported by this response");
         }
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
+        reader = response.body.getReader();
 
+        const decoder = new TextDecoder();
         let buffer = "";
+
+        const processEvent = (event) => {
+            const dataLines = event
+                .split(/\r?\n/)
+                .filter((line) => line.startsWith("data:"));
+
+            if (!dataLines.length) return;
+
+            const dataText = dataLines
+                .map((line) => line.slice(5).trim())
+                .join("\n");
+
+            if (!dataText) return;
+
+            const data = JSON.parse(dataText);
+
+            if (data.type === "error" || data.error) {
+                throw new Error(
+                    data.message || data.error || "AI battle failed"
+                );
+            }
+
+            onMessage?.(data);
+        };
 
         while (true) {
             const { value, done } = await reader.read();
@@ -48,31 +86,37 @@ export const streamBattle = async ({
 
             buffer += decoder.decode(value, { stream: true });
 
-            const events = buffer.split("\n\n");
+            const events = buffer.split(/\r?\n\r?\n/);
             buffer = events.pop() || "";
 
             for (const event of events) {
-                const dataLine = event
-                    .split("\n")
-                    .find((line) => line.startsWith("data:"));
-
-                if (!dataLine) continue;
-
-                const data = JSON.parse(dataLine.slice(5).trim());
-
-                if (data.error || data.type === "error") {
-                    throw new Error(data.message || data.error);
-                }
-
-                onMessage?.(data);
+                processEvent(event);
             }
         }
+
+        buffer += decoder.decode();
+
+        if (buffer.trim()) {
+            processEvent(buffer);
+        }
+
         onComplete?.();
 
     } catch (error) {
         if (error.name === "AbortError") {
             return;
         }
+
+        console.error("Streaming error:", error);
         onError?.(error);
+
+    } finally {
+        if (reader) {
+            try {
+                reader.releaseLock();
+            } catch {
+                // Reader may already be released
+            }
+        }
     }
 };
