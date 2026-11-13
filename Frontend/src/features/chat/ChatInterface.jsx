@@ -214,24 +214,39 @@ export default function ChatInterface() {
     };
 
     // Delete a battle
-    const handleDeleteBattle = (battleId) => {
-        if (activeBattleId === battleId) {
-            abortControllerRef.current?.abort();
-            abortControllerRef.current = null;
-        }
+    const handleDeleteBattle = async (battleId) => {
+        try {
+            // Delete from MongoDB if user is logged in
+            if (user && localStorage.getItem("token")) {
+                await deleteBattleHistory(battleId);
+            }
 
-        const remaining = battleList.filter(
-            (battle) => battle.id !== battleId
-        );
+            // Abort stream if deleting active battle
+            if (activeBattleId === battleId) {
+                abortControllerRef.current?.abort();
+                abortControllerRef.current = null;
+            }
 
-        setBattleList(remaining);
+            const remaining = battleList.filter(
+                (battle) => battle.id !== battleId
+            );
 
-        if (activeBattleId === battleId) {
-            const next = remaining[0] || null;
+            setBattleList(remaining);
 
-            setActiveBattleId(next?.id || null);
-            setMessages(next?.messages || []);
-            setIsStreaming(false);
+            if (activeBattleId === battleId) {
+                const next = remaining[0] || null;
+
+                setActiveBattleId(next?.id || null);
+                setMessages(next?.messages || []);
+                setIsStreaming(false);
+            }
+
+        } catch (error) {
+            console.error("Delete battle failed:", error); 
+            alert(
+                error.response?.data?.error ||
+                "Unable to delete battle. Please try again."
+            );
         }
     };
 
