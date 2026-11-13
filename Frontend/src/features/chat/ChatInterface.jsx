@@ -5,7 +5,7 @@ import ChatComposer from "./components/ChatComposer";
 import MessageList from "./components/MessageList";
 import AuthModal from "../../components/AuthModal";
 import { streamBattle } from "../../api/stream";
-import { getHistory , deleteBattleHistory } from "../../api/history";
+import { getHistory, deleteBattleHistory } from "../../api/history";
 import { getCurrentUser, logoutUser } from "../../api/auth";
 
 const STORAGE_KEY = "ai-arena-battles";
@@ -81,6 +81,7 @@ export default function ChatInterface() {
     const [inputValue, setInputValue] = useState("");
     const [isStreaming, setIsStreaming] = useState(false);
     const [isLoadingBattle, setIsLoadingBattle] = useState(false);
+    const [streamError, setStreamError] = useState("");
 
     const textareaRef = useRef(null);
     const endOfMessagesRef = useRef(null);
@@ -194,6 +195,7 @@ export default function ChatInterface() {
         setMessages([]);
         setInputValue("");
         setIsStreaming(false);
+        setStreamError("");
     };
 
     // Select an existing battle
@@ -211,17 +213,16 @@ export default function ChatInterface() {
         setMessages(selected.messages || []);
         setInputValue("");
         setIsStreaming(false);
+        setStreamError("");
     };
 
     // Delete a battle
     const handleDeleteBattle = async (battleId) => {
         try {
-            // Delete from MongoDB if user is logged in
             if (user && localStorage.getItem("token")) {
                 await deleteBattleHistory(battleId);
             }
 
-            // Abort stream if deleting active battle
             if (activeBattleId === battleId) {
                 abortControllerRef.current?.abort();
                 abortControllerRef.current = null;
@@ -239,10 +240,11 @@ export default function ChatInterface() {
                 setActiveBattleId(next?.id || null);
                 setMessages(next?.messages || []);
                 setIsStreaming(false);
+                setStreamError("");
             }
-
         } catch (error) {
-            console.error("Delete battle failed:", error); 
+            console.error("Delete battle failed:", error);
+
             alert(
                 error.response?.data?.error ||
                 "Unable to delete battle. Please try again."
@@ -262,6 +264,8 @@ export default function ChatInterface() {
             setIsAuthModalOpen(true);
             return;
         }
+
+        setStreamError("");
 
         const battleId = activeBattleId || crypto.randomUUID();
 
@@ -348,11 +352,17 @@ export default function ChatInterface() {
 
                 onError: (error) => {
                     console.error("Battle streaming failed:", error);
+                    setStreamError(
+                        error.message || "Something went wrong. Please try again."
+                    );
                 },
             });
-
         } catch (error) {
             console.error("Battle request failed:", error);
+
+            setStreamError(
+                error.message || "Unable to complete the AI battle."
+            );
         } finally {
             if (abortControllerRef.current === controller) {
                 abortControllerRef.current = null;
@@ -430,6 +440,7 @@ export default function ChatInterface() {
         setActiveBattleId(null);
         setInputValue("");
         setIsStreaming(false);
+        setStreamError("");
 
         localStorage.removeItem(STORAGE_KEY);
     };
@@ -467,6 +478,23 @@ export default function ChatInterface() {
                     isStreaming={isStreaming}
                     endOfMessagesRef={endOfMessagesRef}
                 />
+
+                {streamError && (
+                    <div
+                        role="alert"
+                        className="mx-auto mb-3 flex w-full max-w-4xl items-center justify-between gap-3 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300"
+                    >
+                        <span>{streamError}</span>
+
+                        <button
+                            type="button"
+                            onClick={() => setStreamError("")}
+                            className="shrink-0 font-medium hover:underline"
+                        >
+                            Dismiss
+                        </button>
+                    </div>
+                )}
 
                 <ChatComposer
                     inputValue={inputValue}
