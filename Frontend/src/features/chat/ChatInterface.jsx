@@ -5,9 +5,8 @@ import ChatComposer from "./components/ChatComposer";
 import MessageList from "./components/MessageList";
 import AuthModal from "../../components/AuthModal";
 import { streamBattle } from "../../api/stream";
-import { getHistory } from "../../api/history";
+import { getHistory , deleteBattleHistory } from "../../api/history";
 import { getCurrentUser, logoutUser } from "../../api/auth";
-import { deleteBattleHistory } from "../../api/history";
 
 const STORAGE_KEY = "ai-arena-battles";
 
