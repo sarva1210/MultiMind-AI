@@ -30,7 +30,7 @@ export const streamBattleTurn = async (
 
     if (
         judge_provider &&
-        !["gemini", "mistral", "cohere"].includes(judge_provider)
+        !["gemini", "groq", "cohere"].includes(judge_provider)
     ) {
         return res.status(400).json({
             error: "Invalid judge provider"
