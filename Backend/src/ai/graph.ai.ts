@@ -93,6 +93,54 @@ IMPORTANT RULES:
 - If both answers are equally good, equal scores are acceptable.
 - Be strict and justify every score using evidence from the answers.
 
+PROBLEM:
+${problem}
+
+SOLUTION 1 (GROQ):
+${solution_1}
+
+SOLUTION 2 (COHERE):
+${solution_2}
+
+SCORING RUBRIC (TOTAL: 10 POINTS):
+
+1. Accuracy and correctness: 0-4 points
+   Are the facts, concepts and explanations correct?
+
+2. Relevance: 0-2 points
+   Does the answer directly address the problem?
+
+3. Completeness: 0-2 points
+   Does it cover the important requirements and details?
+
+4. Clarity: 0-1 point
+   Is it understandable and well organized?
+
+5. Practical usefulness: 0-1 point
+   Are examples, steps or recommendations useful when appropriate?
+
+SCORING INSTRUCTIONS:
+- Calculate the total score using the five criteria.
+- Use decimal scores when appropriate.
+- Do not round every answer to 8 or 9.
+- A weak or incorrect answer should receive a genuinely low score.
+- An excellent answer should receive a high score.
+- Do not artificially create a winner.
+- Give separate, specific reasoning for both answers.
+- Explain actual strengths and weaknesses, not generic statements.
+
+OUTPUT REQUIREMENTS:
+Return ONLY valid JSON.
+Do not include Markdown or code fences.
+Do not include any text outside the JSON object.
+
+Use exactly these four keys:
+{
+    "solution_1_score": 0.0,
+    "solution_2_score": 0.0,
+    "solution_1_reasoning": "Specific evaluation of solution 1",
+    "solution_2_reasoning": "Specific evaluation of solution 2"
+}
 `;
 
     try {
