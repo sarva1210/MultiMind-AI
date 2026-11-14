@@ -24,6 +24,7 @@ function useTypingEffect(fullText = "", active = false) {
 
     const tick = () => {
       const text = fullTextRef.current;
+
       indexRef.current = Math.min(
         indexRef.current + CHARS_PER_FRAME,
         text.length
@@ -191,20 +192,31 @@ export default function ArenaResponse({
   const [display1, done1] = useTypingEffect(solution1, isNew);
   const [display2, done2] = useTypingEffect(solution2, isNew);
 
-  const showJudge = Boolean(judge) && !isStreaming && done1 && done2;
+  // Show judge immediately when evaluation is available
+  const showJudge = Boolean(judge);
+
+  // Show loader while both solutions are ready and judge is evaluating
+  const isJudgeLoading =
+    isStreaming &&
+    Boolean(solution1) &&
+    Boolean(solution2) &&
+    !judge;
 
   const isSolution1Loading =
     isStreaming && (!solution1 || solution1 === "Thinking...");
+
   const isSolution2Loading =
     isStreaming && (!solution2 || solution2 === "Thinking...");
 
   return (
     <div className="my-6 flex w-full max-w-full flex-col gap-6 overflow-hidden md:gap-8">
       <div className="grid w-full max-w-full grid-cols-1 gap-6 md:grid-cols-2">
+        {/* Solution 1 */}
         <div className="flex max-w-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition-all hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 md:rounded-3xl md:p-8">
           <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-zinc-500 md:mb-6">
             <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
             <span>Solution 1</span>
+
             {isSolution1Loading && (
               <span className="ml-auto flex gap-1">
                 {[0, 150, 300].map((delay) => (
@@ -227,10 +239,12 @@ export default function ArenaResponse({
           </div>
         </div>
 
+        {/* Solution 2 */}
         <div className="flex max-w-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition-all hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 md:rounded-3xl md:p-8">
           <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-zinc-500 md:mb-6">
             <span className="h-2 w-2 shrink-0 rounded-full bg-violet-500" />
             <span>Solution 2</span>
+
             {isSolution2Loading && (
               <span className="ml-auto flex gap-1">
                 {[0, 150, 300].map((delay) => (
@@ -254,6 +268,17 @@ export default function ArenaResponse({
         </div>
       </div>
 
+      {/* Judge Loading Indicator */}
+      {isJudgeLoading && (
+        <div className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-5 dark:border-zinc-800 dark:bg-zinc-900">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
+          <p className="text-sm text-zinc-600 dark:text-zinc-300">
+            AI Judge is evaluating both solutions...
+          </p>
+        </div>
+      )}
+
+      {/* Judge Results */}
       {showJudge && (
         <div className="animate-in fade-in mt-2 max-w-full overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 p-5 shadow-sm duration-500 dark:border-zinc-800 dark:bg-zinc-950 md:rounded-3xl md:p-8">
           <h3 className="mb-4 flex items-center gap-3 text-base font-medium text-zinc-900 dark:text-zinc-100 md:mb-6 md:text-lg">
@@ -270,6 +295,7 @@ export default function ArenaResponse({
                   {judge.solution_1_score ?? "—"}/10
                 </span>
               </div>
+
               <p className="px-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400 md:text-sm">
                 {judge.solution_1_reasoning || ""}
               </p>
@@ -284,6 +310,7 @@ export default function ArenaResponse({
                   {judge.solution_2_score ?? "—"}/10
                 </span>
               </div>
+
               <p className="px-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400 md:text-sm">
                 {judge.solution_2_reasoning || ""}
               </p>
