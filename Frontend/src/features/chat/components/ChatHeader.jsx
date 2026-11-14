@@ -1,16 +1,6 @@
 import { LogIn, LogOut, Menu, Settings2, Swords } from "lucide-react";
 
-export default function ChatHeader({
-  user,
-  messages,
-  activeBattleId,
-  isSidebarOpen,
-  judgeProvider,
-  onOpenSidebar,
-  onOpenAuth,
-  onSignOut,
-  onJudgeProviderChange,
-}) {
+export default function ChatHeader({ user, messages, activeBattleId, isSidebarOpen, judgeProvider, onOpenSidebar, onOpenAuth, onSignOut, onJudgeProviderChange }) {
   return (
     <header className="sticky top-0 z-10 flex w-full items-center justify-between gap-3 border-b border-zinc-200 bg-white/90 px-3 py-3 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-950/90 sm:px-4 md:px-6 md:py-4">
       <div className="flex min-w-0 items-center gap-2 sm:gap-3">
@@ -65,7 +55,7 @@ export default function ChatHeader({
             className="max-w-32 cursor-pointer bg-transparent text-xs font-semibold text-zinc-900 outline-none dark:text-zinc-100 md:max-w-none md:text-sm"
           >
             <option className=" bg-zinc-900 text-zinc-100 " value="gemini">Gemini Flash</option>
-            <option className=" bg-zinc-900 text-zinc-100 " value="mistral">Mistral Medium</option>
+            <option className=" bg-zinc-900 text-zinc-100 " value="groq">Groq</option>
             <option className=" bg-zinc-900 text-zinc-100 " value="cohere">Cohere Command</option>
           </select>
         </div>
