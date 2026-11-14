@@ -1,13 +1,7 @@
 import { StateGraph, StateSchema, START, END, type GraphNode } from "@langchain/langgraph";
-
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { z } from "zod";
-
-import {
-    cohereModel,
-    geminiModel,
-    groqModel,
-} from "./model.ai.js";
+import { cohereModel, geminiModel, groqModel } from "./model.ai.js";
 
 // Graph state
 const state = new StateSchema({
@@ -81,36 +75,25 @@ const judgeNode: GraphNode<typeof state> = async (state) => {
 
     console.log("Selected judge:", judge_provider);
 
-    const prompt = ` You are an impartial AI judge.
-    Evaluate the following two AI-generated solutions.
+    const prompt = `
+You are a strict, independent and unbiased AI evaluator.
 
-    Problem:
-    ${problem}
+Your task is to evaluate two AI-generated answers to the same problem.
 
-    Solution 1 (Groq):
-    ${solution_1}
+IMPORTANT RULES:
+- Evaluate each answer independently before comparing them.
+- Never assume that either answer is correct.
+- Do not favor a model, writing style, answer length, or formatting.
+- Do not give similar scores automatically.
+- Do not use default or predetermined scores.
+- Award points only for demonstrated quality.
+- Penalize incorrect facts, irrelevant content, missing steps,
+  unsupported claims and misleading explanations.
+- A longer answer is not automatically a better answer.
+- If both answers are equally good, equal scores are acceptable.
+- Be strict and justify every score using evidence from the answers.
 
-    Solution 2 (Cohere):
-    ${solution_2}
-
-    Evaluate both solutions based on:
-    1. Accuracy
-    2. Relevance
-    3. Clarity
-    4. Completeness
-    5. Correctness
-
-    Give each solution a score between 0 and 10.
-
-    Return ONLY valid JSON in this exact format:
-    {
-        "solution_1_score": 8,
-        "solution_2_score": 9,
-        "solution_1_reasoning": "Explanation of solution 1 score",
-        "solution_2_reasoning": "Explanation of solution 2 score"
-    }
-
-    Do not include markdown or code fences.`;
+`;
 
     try {
         console.log("Calling judge API...");
@@ -121,20 +104,20 @@ const judgeNode: GraphNode<typeof state> = async (state) => {
 
         const content = response.content;
 
-        const responseText = typeof content === "string"
-            ? content
-            : Array.isArray(content)
+        const responseText =
+            typeof content === "string"
                 ? content
-                    .filter((part) => part.type === "text")
-                    .map((part) => part.text)
-                    .join("\n")
-                : "";
+                : Array.isArray(content)
+                    ? content
+                        .filter((part) => part.type === "text")
+                        .map((part) => part.text)
+                        .join("\n")
+                    : "";
 
         if (!responseText) {
             throw new Error("Judge returned an empty response");
         }
 
-        // Remove markdown code fences if present
         const cleanedResponse = responseText
             .replace(/```json/gi, "")
             .replace(/```/g, "")
