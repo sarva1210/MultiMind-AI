@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LockKeyhole, Mail, Swords, UserRound, X } from "lucide-react";
+import { LockKeyhole, Mail, Swords, UserRound, X, Eye, EyeOff } from "lucide-react";
 import { registerUser, loginUser } from "../api/auth";
 
 export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
@@ -7,6 +7,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -30,6 +31,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
       setName("");
       setEmail("");
       setPassword("");
+      setShowPassword(false);
       onClose();
     } catch (error) {
       setMessage(
@@ -161,7 +163,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
               <LockKeyhole size={18} className="shrink-0 text-zinc-400" />
               <input
                 required
-                type="password"
+                type={showPassword ? "text" : "password"}
                 autoComplete={isRegister ? "new-password" : "current-password"}
                 minLength={isRegister ? 8 : undefined}
                 value={password}
@@ -169,6 +171,14 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
                 placeholder={isRegister ? "At least 8 characters" : "Enter password"}
                 className="w-full min-w-0 bg-transparent py-3 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 dark:text-white"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="shrink-0 text-zinc-400 transition hover:text-zinc-700 dark:hover:text-zinc-200"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
           </label>
 
