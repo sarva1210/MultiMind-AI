@@ -47,6 +47,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
   const switchMode = (nextMode) => {
     setMode(nextMode);
     setMessage("");
+    setShowPassword(false);
   };
 
   return (
