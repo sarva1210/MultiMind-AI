@@ -42,17 +42,24 @@ function formatHistory(history) {
             solution_1: item.solution_1,
             solution_2: item.solution_2,
             judge: item.judge,
+            judge_provider: item.judge_provider,
             isNew: false,
         });
     });
 
     return Object.values(groups)
-        .map((battle) => ({
-            ...battle,
-            messages: battle.messages.sort(
+        .map((battle) => {
+            const messages = battle.messages.sort(
                 (a, b) => a.turnIndex - b.turnIndex
-            ),
-        }))
+            );
+
+            return {
+                ...battle,
+                messages,
+                judgeProvider:
+                    messages[messages.length - 1]?.judge_provider || "gemini",
+            };
+        })
         .sort(
             (a, b) =>
                 new Date(b.createdAt).getTime() -
@@ -71,7 +78,9 @@ export default function ChatInterface() {
     );
 
     const [judgeProvider, setJudgeProvider] = useState(
-        () => localStorage.getItem("ai-arena-judge") || "gemini"
+        () => battleList[0]?.judgeProvider ||
+            localStorage.getItem("ai-arena-judge") ||
+            "gemini"
     );
 
     const [activeBattleId, setActiveBattleId] = useState(
@@ -87,24 +96,18 @@ export default function ChatInterface() {
     const endOfMessagesRef = useRef(null);
     const abortControllerRef = useRef(null);
 
-    // Save selected judge provider
     useEffect(() => {
         localStorage.setItem("ai-arena-judge", judgeProvider);
     }, [judgeProvider]);
 
-    // Save battles locally
     useEffect(() => {
         try {
-            localStorage.setItem(
-                STORAGE_KEY,
-                JSON.stringify(battleList)
-            );
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(battleList));
         } catch (error) {
             console.error("Unable to save battles:", error);
         }
     }, [battleList]);
 
-    // Auto-scroll messages
     useEffect(() => {
         endOfMessagesRef.current?.scrollIntoView({
             behavior: "smooth",
@@ -112,7 +115,6 @@ export default function ChatInterface() {
         });
     }, [messages]);
 
-    // Load user history from MongoDB
     const loadUserHistory = async () => {
         const response = await getHistory();
         const groupedBattles = formatHistory(response.history || []);
@@ -122,13 +124,13 @@ export default function ChatInterface() {
         if (groupedBattles.length > 0) {
             setActiveBattleId(groupedBattles[0].id);
             setMessages(groupedBattles[0].messages);
+            setJudgeProvider(groupedBattles[0].judgeProvider);
         } else {
             setActiveBattleId(null);
             setMessages([]);
         }
     };
 
-    // Restore login session
     useEffect(() => {
         const restoreSession = async () => {
             if (!localStorage.getItem("token")) return;
@@ -138,7 +140,6 @@ export default function ChatInterface() {
             try {
                 const response = await getCurrentUser();
                 setUser(response.user);
-
                 await loadUserHistory();
             } catch (error) {
                 console.error("Session restore failed:", error);
@@ -152,7 +153,20 @@ export default function ChatInterface() {
         restoreSession();
     }, []);
 
-    // Update one message in both active messages and battle list
+    const handleJudgeProviderChange = (provider) => {
+        setJudgeProvider(provider);
+
+        if (!activeBattleId) return;
+
+        setBattleList((prev) =>
+            prev.map((battle) =>
+                battle.id === activeBattleId
+                    ? { ...battle, judgeProvider: provider }
+                    : battle
+            )
+        );
+    };
+
     const updateBattleMessage = (battleId, messageId, changes) => {
         setMessages((prev) =>
             prev.map((message) =>
@@ -178,7 +192,6 @@ export default function ChatInterface() {
         );
     };
 
-    // Create a new battle
     const handleNewBattle = () => {
         abortControllerRef.current?.abort();
         abortControllerRef.current = null;
@@ -188,6 +201,7 @@ export default function ChatInterface() {
             title: "New Battle",
             createdAt: new Date().toISOString(),
             messages: [],
+            judgeProvider,
         };
 
         setBattleList((prev) => [newBattle, ...prev]);
@@ -198,7 +212,6 @@ export default function ChatInterface() {
         setStreamError("");
     };
 
-    // Select an existing battle
     const handleSelectBattle = (battleId) => {
         const selected = battleList.find(
             (battle) => battle.id === battleId
@@ -211,12 +224,16 @@ export default function ChatInterface() {
 
         setActiveBattleId(battleId);
         setMessages(selected.messages || []);
+        setJudgeProvider(
+            selected.judgeProvider ||
+            selected.messages?.[selected.messages.length - 1]?.judge_provider ||
+            "gemini"
+        );
         setInputValue("");
         setIsStreaming(false);
         setStreamError("");
     };
 
-    // Delete a battle
     const handleDeleteBattle = async (battleId) => {
         try {
             if (user && localStorage.getItem("token")) {
@@ -239,6 +256,11 @@ export default function ChatInterface() {
 
                 setActiveBattleId(next?.id || null);
                 setMessages(next?.messages || []);
+                setJudgeProvider(
+                    next?.judgeProvider ||
+                    next?.messages?.[next.messages.length - 1]?.judge_provider ||
+                    "gemini"
+                );
                 setIsStreaming(false);
                 setStreamError("");
             }
@@ -252,7 +274,6 @@ export default function ChatInterface() {
         }
     };
 
-    // Send prompt to AI battle backend
     const handleSend = async (e) => {
         e?.preventDefault();
 
@@ -283,6 +304,7 @@ export default function ChatInterface() {
             solution_1: "",
             solution_2: "",
             judge: null,
+            judge_provider: judgeProvider,
             isNew: false,
         };
 
@@ -297,6 +319,7 @@ export default function ChatInterface() {
             createdAt:
                 currentBattle?.createdAt || new Date().toISOString(),
             messages: updatedMessages,
+            judgeProvider,
         };
 
         setBattleList((prev) => [
@@ -324,29 +347,16 @@ export default function ChatInterface() {
                     if (event.event !== "on_chain_end") return;
 
                     const output = event.data?.output;
-
                     if (!output) return;
 
                     const changes = {};
 
-                    if (output.solution_1) {
-                        changes.solution_1 = output.solution_1;
-                    }
-
-                    if (output.solution_2) {
-                        changes.solution_2 = output.solution_2;
-                    }
-
-                    if (output.judge) {
-                        changes.judge = output.judge;
-                    }
+                    if (output.solution_1) changes.solution_1 = output.solution_1;
+                    if (output.solution_2) changes.solution_2 = output.solution_2;
+                    if (output.judge) changes.judge = output.judge;
 
                     if (Object.keys(changes).length > 0) {
-                        updateBattleMessage(
-                            battleId,
-                            messageId,
-                            changes
-                        );
+                        updateBattleMessage(battleId, messageId, changes);
                     }
                 },
 
@@ -394,7 +404,6 @@ export default function ChatInterface() {
         }
     };
 
-    // Enter to send, Shift + Enter for new line
     const handleKeyDown = (e) => {
         if (e.key !== "Enter" || e.shiftKey) return;
 
@@ -413,7 +422,6 @@ export default function ChatInterface() {
         }, 300);
     };
 
-    // Login or register success
     const handleAuthSuccess = async (loggedInUser) => {
         setUser(loggedInUser);
         setIsLoadingBattle(true);
@@ -427,7 +435,6 @@ export default function ChatInterface() {
         }
     };
 
-    // Sign out
     const handleSignOut = async () => {
         abortControllerRef.current?.abort();
         abortControllerRef.current = null;
@@ -469,7 +476,7 @@ export default function ChatInterface() {
                     onOpenSidebar={() => setIsSidebarOpen(true)}
                     onOpenAuth={() => setIsAuthModalOpen(true)}
                     onSignOut={handleSignOut}
-                    onJudgeProviderChange={setJudgeProvider}
+                    onJudgeProviderChange={handleJudgeProviderChange}
                 />
 
                 <MessageList
