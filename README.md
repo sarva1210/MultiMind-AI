@@ -18,3 +18,26 @@ It allows users to compare AI-generated answers, understand the reasoning behind
 - **Chat-Specific Judge Selection:** Each battle maintains its own judge selection based on its conversation history.
 - **Markdown Rendering:** Display formatted responses and highlighted code blocks.
 - **Persistent Conversations:** Access saved conversations even after refreshing or logging back in.
+
+
+### Tech Stack
+
+## Frontend
+- React.js
+- Vite
+- Tailwind CSS
+- Axios
+- React Router DOM
+- Lucide React
+- React Markdown
+- Highlight.js
+
+## Backend
+- Node.js
+- Express.js
+- TypeScript
+- MongoDB
+- Mongoose
+- JSON Web Token (JWT)
+- LangChain
+- LangGraph
