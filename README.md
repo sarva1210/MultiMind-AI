@@ -41,3 +41,12 @@ It allows users to compare AI-generated answers, understand the reasoning behind
 - JSON Web Token (JWT)
 - LangChain
 - LangGraph
+
+## AI Models
+- Google Gemini
+- Groq
+- Cohere
+
+## Communication
+- REST APIs
+- Server-Sent Events (SSE)
