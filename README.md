@@ -50,3 +50,14 @@ It allows users to compare AI-generated answers, understand the reasoning behind
 ## Communication
 - REST APIs
 - Server-Sent Events (SSE)
+
+
+## How It Works
+
+1. A user enters a question or problem.
+2. The backend sends the problem to multiple AI models.
+3. Groq and Cohere generate their responses in parallel.
+4. The selected judge model evaluates both responses.
+5. The judge provides scores and reasoning.
+6. Results are streamed to the frontend.
+7. The conversation is saved for future access.
