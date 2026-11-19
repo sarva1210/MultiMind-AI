@@ -61,3 +61,6 @@ It allows users to compare AI-generated answers, understand the reasoning behind
 5. The judge provides scores and reasoning.
 6. Results are streamed to the frontend.
 7. The conversation is saved for future access.
+
+
+## Project Structure
