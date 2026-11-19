@@ -81,3 +81,11 @@ MultiMind-AI/
 
 
 ## Getting Started
+
+
+### Prerequisites
+
+- Node.js
+- npm
+- MongoDB
+- API keys for Google Gemini, Groq, and Cohere
