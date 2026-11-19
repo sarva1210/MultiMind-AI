@@ -64,3 +64,17 @@ It allows users to compare AI-generated answers, understand the reasoning behind
 
 
 ## Project Structure
+
+MultiMind-AI/
+│
+├── backend/
+│   ├── src/
+│   ├── package.json
+│   └── ...
+│
+├── frontend/
+│   ├── src/
+│   ├── package.json
+│   └── ...
+│
+└── README.md
