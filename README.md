@@ -89,3 +89,9 @@ MultiMind-AI/
 - npm
 - MongoDB
 - API keys for Google Gemini, Groq, and Cohere
+
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/sarva1210/MultiMind-AI.git
