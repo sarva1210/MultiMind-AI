@@ -78,3 +78,6 @@ MultiMind-AI/
 │   └── ...
 │
 └── README.md
+
+
+## Getting Started
