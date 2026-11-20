@@ -110,3 +110,14 @@ cd MultiMind-AI
 cd backend
 npm install
 ```
+
+Create a `.env` file in the backend directory and configure the required environment variables.
+
+```env
+PORT=
+MONGODB_URI=
+JWT_SECRET=
+GOOGLE_API_KEY=
+GROQ_API_KEY=
+COHERE_API_KEY=
+```
