@@ -95,3 +95,11 @@ MultiMind-AI/
 
 ```bash
 git clone https://github.com/sarva1210/MultiMind-AI.git
+
+```
+
+### 2. Navigate to the Project
+
+```bash
+cd MultiMind-AI
+```
