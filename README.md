@@ -105,3 +105,8 @@ cd MultiMind-AI
 ```
 
 ### 3. Backend Setup
+
+```bash
+cd backend
+npm install
+```
