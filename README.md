@@ -103,3 +103,5 @@ git clone https://github.com/sarva1210/MultiMind-AI.git
 ```bash
 cd MultiMind-AI
 ```
+
+### 3. Backend Setup
