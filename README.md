@@ -129,3 +129,15 @@ Start the backend:
 ```bash
 npm run dev
 ```
+
+### 4. Frontend Setup
+
+Open another terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend development server will start using Vite. Open the local URL displayed in your terminal.
