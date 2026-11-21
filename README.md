@@ -141,3 +141,11 @@ npm run dev
 ```
 
 The frontend development server will start using Vite. Open the local URL displayed in your terminal.
+
+---
+
+## Environment Variables
+
+Keep API keys and sensitive credentials inside environment files.
+
+**Important:** Never commit `.env` files or expose API keys in the frontend.
