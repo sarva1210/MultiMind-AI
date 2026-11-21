@@ -120,6 +120,7 @@ JWT_SECRET=
 GOOGLE_API_KEY=
 GROQ_API_KEY=
 COHERE_API_KEY=
+FRONTEND_URL=
 ```
 
 Add any additional variables required by your backend configuration.
