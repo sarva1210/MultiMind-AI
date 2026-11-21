@@ -149,3 +149,19 @@ The frontend development server will start using Vite. Open the local URL displa
 Keep API keys and sensitive credentials inside environment files.
 
 **Important:** Never commit `.env` files or expose API keys in the frontend.
+
+---
+
+## Future Improvements
+
+- Support for additional AI providers.
+- Advanced response comparison.
+- More detailed evaluation metrics.
+- Improved conversation management.
+- Performance and UI enhancements.
+
+---
+
+## License
+
+This project is available for educational and development purposes.
