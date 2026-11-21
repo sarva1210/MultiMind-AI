@@ -123,3 +123,9 @@ COHERE_API_KEY=
 ```
 
 Add any additional variables required by your backend configuration.
+
+Start the backend:
+
+```bash
+npm run dev
+```
